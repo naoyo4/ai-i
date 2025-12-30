@@ -38,8 +38,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
     }, [topicId]);
 
     // Vercel AI SDK hook
-    const chatHelpers = useChat({
-        // @ts-expect-error - 'api' option is valid in runtime
+    const { messages, input, handleInputChange, handleSubmit, append, stop, isLoading, error, status } = useChat({
         api: '/api/chat',
         body: { topicId, interviewId },
         initialMessages: [{
@@ -53,21 +52,12 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         }
     });
 
-    const {
-        messages,
-        stop,
-        // @ts-expect-error - `append` is part of UseChatHelpers in runtime
-        append,
-        // @ts-expect-error - `isLoading` is part of UseChatHelpers in runtime
-        isLoading: sdkLoading,
-        error,
-        status
-    } = chatHelpers;
-
-    const isLoading = sdkLoading || status === 'streaming' || status === 'submitted';
+    // const isLoading = sdkLoading || status === 'streaming' || status === 'submitted';
+    // Simplified loading check
+    const isAiLoading = isLoading || status === 'streaming' || status === 'submitted';
 
     // Debug logging
-    console.log('Chat State:', { interviewId, isLoading, status, messagesLength: messages.length, error });
+    console.log('Chat State:', { interviewId, isAiLoading, status, messagesLength: messages.length, error });
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -133,7 +123,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
                         }}
                     />
                 ))}
-                {isLoading && (
+                {isAiLoading && (
                     <div className="ml-12 text-xs text-gray-400 animate-pulse mb-4">
                         AI is typing...
                     </div>
@@ -158,7 +148,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
                         className="w-full max-h-[150px] min-h-[50px] p-2 bg-transparent resize-none focus:outline-none text-base text-gray-800 placeholder:text-gray-400"
                         rows={1}
                     />
-                    {isLoading ? (
+                    {isAiLoading ? (
                         <button
                             type="button"
                             onClick={() => stop()}
