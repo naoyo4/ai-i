@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Deployment Status
+- **Vercel**: Deployed with Supabase and Google AI integration.
+
 ## Getting Started
 
 First, run the development server:
