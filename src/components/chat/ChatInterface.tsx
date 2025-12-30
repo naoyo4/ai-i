@@ -66,6 +66,9 @@ export function ChatInterface({ topicId }: { topicId: string }) {
 
     const isLoading = sdkLoading || status === 'streaming' || status === 'submitted';
 
+    // Debug logging
+    console.log('Chat State:', { interviewId, isLoading, status, messagesLength: messages.length, error });
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
