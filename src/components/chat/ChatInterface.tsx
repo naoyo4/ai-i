@@ -39,7 +39,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
 
     // Vercel AI SDK hook
     const chatHelpers = useChat({
-        // @ts-expect-error - 'api' option is valid but types might be outdated or strict
+        // @ts-expect-error - 'api' option is valid in runtime
         api: '/api/chat',
         body: { topicId, interviewId },
         initialMessages: [{
@@ -58,11 +58,9 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         stop,
         // @ts-expect-error - `append` is part of UseChatHelpers in runtime
         append,
-        // @ts-expect-error - `isLoading` is part of UseChatHelpers
+        // @ts-expect-error - `isLoading` is part of UseChatHelpers in runtime
         isLoading: sdkLoading,
-        // @ts-expect-error - `error` is part of UseChatHelpers
         error,
-        // @ts-expect-error - `status` is part of UseChatHelpers
         status
     } = chatHelpers;
 
@@ -83,7 +81,6 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         const content = localInput;
         setLocalInput('');
 
-        // @ts-expect-error - `append` is part of UseChatHelpers
         await append({
             role: 'user',
             content: content
@@ -122,7 +119,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto p-4">
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto py-4 px-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-200">
-                {messages.map((msg) => (
+                {messages.map((msg: any) => (
                     <MessageBubble
                         key={msg.id}
                         message={{
@@ -138,7 +135,6 @@ export function ChatInterface({ topicId }: { topicId: string }) {
                         AI is typing...
                     </div>
                 )}
-                {/* @ts-expect-error - `error` is part of UseChatHelpers */}
                 {error && (
                     <div className="mx-4 mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 flex items-center gap-2">
                         <StopCircle size={16} />
