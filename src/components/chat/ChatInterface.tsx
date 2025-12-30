@@ -56,6 +56,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
     const {
         messages,
         stop,
+        // @ts-expect-error - `append` is part of UseChatHelpers in runtime
         append,
         // @ts-expect-error - `isLoading` is part of UseChatHelpers
         isLoading: sdkLoading,
