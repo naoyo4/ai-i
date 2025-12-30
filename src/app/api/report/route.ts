@@ -9,8 +9,11 @@ export async function POST(req: Request) {
 
     let conversationMessages = bodyMessages;
 
-    // If interviewId is provided and real, try to fetch messages from DB first
-    if (interviewId && !interviewId.startsWith('mock-') && supabase) {
+    // Only try to fetch from DB if messages weren't provided in the request
+    if ((!conversationMessages || conversationMessages.length === 0) &&
+        interviewId &&
+        !interviewId.startsWith('mock-') &&
+        supabase) {
         const { data } = await supabase
             .from('interviews')
             .select('messages')
