@@ -23,7 +23,10 @@ export async function POST(req: Request) {
     }
 
     if (!conversationMessages || conversationMessages.length === 0) {
-        return new Response("No messages to summarize", { status: 400 });
+        return new Response(JSON.stringify({ error: "No messages to summarize" }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     // Basic prompt to summarize the interview
@@ -38,12 +41,28 @@ export async function POST(req: Request) {
     - focus_area (string): The main area the user seemed concerned about.
   `;
 
-    // Format conversation for the prompt
-    const conversation = conversationMessages.map((m: any) => `${m.role}: ${m.content}`).join('\n');
+    // Format conversation for the prompt - handle both old and new message formats
+    const conversation = conversationMessages.map((m: any) => {
+        let content = '';
+
+        // Handle UIMessage format (with parts)
+        if (m.parts && Array.isArray(m.parts)) {
+            content = m.parts
+                .filter((part: any) => part.type === 'text')
+                .map((part: any) => part.text)
+                .join('');
+        }
+        // Handle old format (with content)
+        else if (m.content) {
+            content = m.content;
+        }
+
+        return `${m.role}: ${content}`;
+    }).join('\n');
 
     try {
         const { text } = await generateText({
-            model: google('gemini-1.5-flash'), // Using Google Gemini model
+            model: google('gemini-2.0-flash-exp'),
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: conversation }
@@ -55,7 +74,6 @@ export async function POST(req: Request) {
         const reportData = JSON.parse(cleanedText);
 
         // Save report to DB
-        // Check if supabase exists (env vars present) before trying to save
         if (interviewId && !interviewId.startsWith('mock-') && supabase) {
             await supabase
                 .from('interviews')
@@ -69,6 +87,9 @@ export async function POST(req: Request) {
         return Response.json(reportData);
     } catch (error) {
         console.error('Report Error:', error);
-        return new Response("Error generating report", { status: 500 });
+        return new Response(JSON.stringify({ error: "Error generating report" }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
