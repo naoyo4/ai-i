@@ -44,19 +44,21 @@ export async function POST(req: Request) {
     - focus_area (string): The main area the user seemed concerned about.
   `;
 
-    // Format conversation for the prompt - handle both old and new message formats
-    const conversation = conversationMessages.map((m: any) => {
+    type StoredMessage = {
+        role: string;
+        content?: string;
+        parts?: { type: string; text?: string }[];
+    };
+
+    const conversation = conversationMessages.map((m: StoredMessage) => {
         let content = '';
 
-        // Handle UIMessage format (with parts)
         if (m.parts && Array.isArray(m.parts)) {
             content = m.parts
-                .filter((part: any) => part.type === 'text')
-                .map((part: any) => part.text)
+                .filter((part) => part.type === 'text')
+                .map((part) => part.text ?? '')
                 .join('');
-        }
-        // Handle old format (with content)
-        else if (m.content) {
+        } else if (m.content) {
             content = m.content;
         }
 

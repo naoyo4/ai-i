@@ -12,6 +12,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
     const router = useRouter();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [interviewId, setInterviewId] = useState<string | null>(null);
+    const [sessionError, setSessionError] = useState<string | null>(null);
     const [input, setInput] = useState('');
 
     // Create interview session on mount
@@ -22,12 +23,18 @@ export function ChatInterface({ topicId }: { topicId: string }) {
                     method: 'POST',
                     body: JSON.stringify({ topicId })
                 });
+                if (!res.ok) {
+                    const data = await res.json();
+                    setSessionError(data.error || 'Failed to create session');
+                    return;
+                }
                 const data = await res.json();
                 if (data.id) {
                     setInterviewId(data.id);
                 }
             } catch (e) {
                 console.error("Failed to create session", e);
+                setSessionError('Network error. Please check your connection.');
             }
         };
         createSession();
@@ -50,9 +57,6 @@ export function ChatInterface({ topicId }: { topicId: string }) {
 
     const isLoading = status === 'streaming' || status === 'submitted';
 
-    // Debug logging
-    console.log('Chat State:', { interviewId, isLoading, status, messagesLength: messages.length, error });
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -61,18 +65,21 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         scrollToBottom();
     }, [messages]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const submitMessage = () => {
         if (!input.trim() || status !== 'ready') return;
-
         sendMessage({ text: input });
         setInput('');
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        submitMessage();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSubmit(e as any);
+            submitMessage();
         }
     };
 
@@ -88,6 +95,18 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         }
     };
 
+    if (sessionError) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <div className="text-center space-y-3">
+                    <StopCircle size={32} className="mx-auto text-red-400" />
+                    <p className="text-red-600 font-medium">Failed to start session</p>
+                    <p className="text-gray-500 text-sm">{sessionError}</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!interviewId) {
         return (
             <div className="flex h-[50vh] items-center justify-center text-gray-400 gap-2">
@@ -102,10 +121,9 @@ export function ChatInterface({ topicId }: { topicId: string }) {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto py-4 px-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-200">
                 {messages.map((msg) => {
-                    // Extract text from parts
                     const textContent = msg.parts
-                        .filter((part: any) => part.type === 'text')
-                        .map((part: any) => part.text)
+                        .filter((part): part is Extract<typeof part, { type: 'text' }> => part.type === 'text')
+                        .map((part) => part.text)
                         .join('');
 
                     return (
