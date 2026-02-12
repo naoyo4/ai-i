@@ -27,22 +27,14 @@ function ReportContent() {
 
     const [report, setReport] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [error, setError] = useState('');
 
     useEffect(() => {
         const generateReport = async () => {
             const storedMessages = localStorage.getItem('interview-messages');
 
-            // Prioritize interviewId for server-side generation
             if (!interviewId && !storedMessages) {
-                // Fallback if no messages found (e.g., navigated directly)
-                setReport({
-                    summary: "No interview data found. Please complete an interview first.",
-                    sentiment: "N/A",
-                    key_insights: [],
-                    focus_area: "N/A"
-                });
+                setError('No interview data found. Please complete an interview first.');
                 setLoading(false);
                 return;
             }
@@ -57,19 +49,16 @@ function ReportContent() {
                     })
                 });
 
-                if (!response.ok) throw new Error('Failed to generate report');
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Failed to generate report');
+                }
 
                 const data = await response.json();
                 setReport(data);
             } catch (err) {
                 console.error(err);
-                // Fallback to mock data to show UI even if API fails (no key)
-                setReport({
-                    summary: "Note: Real AI generation failed (likely due to missing API Key). Showing mock report.\n\nThe participant shared valuable insights regarding the topic. They highlighted key strengths and areas for improvement, demonstrating a clear understanding of the subject matter.",
-                    sentiment: "Constructive (Mock)",
-                    key_insights: ["User values transparency", "Suggested UI improvements", "Positive overall impression"],
-                    focus_area: "User Experience"
-                });
+                setError(err instanceof Error ? err.message : 'Failed to generate report. Please check your API key configuration.');
             } finally {
                 setLoading(false);
             }
@@ -114,6 +103,12 @@ function ReportContent() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-2xl z-10">
                             <Loader2 size={32} className="text-indigo-600 animate-spin mb-2" />
                             <span className="text-sm text-gray-500">Analyzing conversation...</span>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12">
+                            <AlertTriangle size={32} className="mx-auto mb-2 text-red-400" />
+                            <p className="text-red-600 font-medium mb-1">Report generation failed</p>
+                            <p className="text-gray-500 text-sm">{error}</p>
                         </div>
                     ) : report ? (
                         <>

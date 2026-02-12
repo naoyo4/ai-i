@@ -27,12 +27,19 @@ src/
 │   └── chat/
 │       ├── ChatInterface.tsx   # Main chat UI component
 │       └── MessageBubble.tsx   # Message display component
-└── lib/
-    ├── types.ts                # TypeScript types + INTERVIEW_TOPICS config
-    ├── utils.ts                # Utility functions (cn() for class merging)
-    └── supabase.ts             # Supabase client initialization
+├── lib/
+│   ├── types.ts                # TypeScript types + INTERVIEW_TOPICS config
+│   ├── utils.ts                # Utility functions (cn() for class merging)
+│   └── supabase.ts             # Supabase client initialization
+└── __tests__/                  # Test files
+    ├── setup.ts                # Vitest setup (jest-dom matchers)
+    ├── utils.test.ts           # cn() utility tests
+    ├── types.test.ts           # INTERVIEW_TOPICS validation tests
+    └── MessageBubble.test.tsx  # MessageBubble component tests
 supabase/
 └── schema.sql                  # Database schema (interviews table)
+.github/workflows/
+└── ci.yml                      # CI pipeline (lint, test, build)
 ```
 
 ## Commands
@@ -41,6 +48,8 @@ supabase/
 - `npm run build` — Production build
 - `npm run start` — Start production server
 - `npm run lint` — Run ESLint (flat config, Next.js core-web-vitals + TypeScript rules)
+- `npm test` — Run Vitest tests once
+- `npm run test:watch` — Run Vitest in watch mode
 
 ## Architecture
 
@@ -62,7 +71,7 @@ supabase/
 - **Styling:** Tailwind CSS v4 with utility classes; no component library (custom components)
 - **Path alias:** `@/*` maps to `./src/*`
 - **Class merging:** Uses `cn()` utility (clsx + tailwind-merge) from `src/lib/utils.ts`
-- **Icons:** Lucide React (`lucide-react`)
+- **Icons:** Lucide React (`lucide-react`), mapped via `ICON_MAP` in `page.tsx`
 
 ### API Routes
 
@@ -74,6 +83,8 @@ All API routes are in `src/app/api/` and use Next.js Route Handlers:
 | `/api/interviews` | POST | Creates a new interview session in Supabase |
 | `/api/report` | POST | Generates AI summary report from interview messages |
 
+API routes return proper HTTP error codes (400, 500, 503) with JSON error bodies on failure.
+
 ## Environment Variables
 
 Required:
@@ -83,7 +94,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY   # Supabase anonymous key
 GOOGLE_GENERATIVE_AI_API_KEY    # Google AI API key (for Gemini)
 ```
 
-The Supabase client in `src/lib/supabase.ts` returns `null` if env vars are missing, and API routes gracefully fall back to mock behavior.
+The Supabase client in `src/lib/supabase.ts` returns `null` if env vars are missing. API routes return 503 when Supabase is not configured.
 
 ## Database
 
@@ -102,17 +113,25 @@ interviews (
 
 RLS is enabled but currently permissive (public read/write) for MVP purposes.
 
+## Testing
+
+Tests use **Vitest** with **@testing-library/react** and **jsdom**. Config is in `vitest.config.ts`.
+
+- Test files live in `src/__tests__/` with the pattern `*.test.{ts,tsx}`
+- Setup file at `src/__tests__/setup.ts` loads jest-dom matchers
+- Run `npm test` before pushing
+
+## CI/CD
+
+GitHub Actions workflow in `.github/workflows/ci.yml` runs on push/PR to `main`:
+1. Lint (`npm run lint`)
+2. Test (`npm test`)
+3. Build (`npm run build`)
+
 ## Code Conventions
 
 - **TypeScript strict mode** is enabled
 - **Interview topics** are configured as constants in `src/lib/types.ts` (`INTERVIEW_TOPICS` array)
 - **Client components** use `"use client"` directive at the top of the file
-- **Error handling:** API routes return JSON error responses with appropriate status codes; frontend falls back to mock data when APIs fail
+- **Error handling:** API routes return JSON error responses with appropriate HTTP status codes; frontend shows error UI states on failure
 - **Message persistence:** Messages are saved to both Supabase (server-side on AI response finish) and localStorage (client-side fallback with key `interview-messages`)
-
-## Known Issues
-
-- Several `@ts-ignore` comments exist in the codebase (icon mapping, message types)
-- No test suite is configured
-- No CI/CD pipeline
-- Some dependencies are imported but unused (`framer-motion`, `@ai-sdk/openai`, `zod`)

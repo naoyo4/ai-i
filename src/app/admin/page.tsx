@@ -12,7 +12,7 @@ type Interview = {
     created_at: string;
     topic_id: string;
     status: string;
-    report: any;
+    report: { sentiment?: string } | null;
 };
 
 export default function AdminPage() {

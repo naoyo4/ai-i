@@ -4,18 +4,6 @@ import { ChatInterface } from '@/components/chat/ChatInterface';
 import { INTERVIEW_TOPICS } from '@/lib/types';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { use } from 'react';
-
-// Next.js 15+ compatible params handling (async params)
-// But create-next-app defaults might be 14 or 15.
-// To be safe for 15 (which is latest), params is a Promise.
-// But standard 14 is object. `use` hook can handle promises.
-// I will assume standard prop pattern but wrapped in `use` or just await if it's async component.
-// But this is 'use client', so it receives params as prop.
-// Actually in Next.js 15, params in client components is a promise.
-// In Next.js 14, it's a prop.
-// A safe way is to wrap it or use `useParams` hook.
 import { useParams } from 'next/navigation';
 
 export default function InterviewPage() {

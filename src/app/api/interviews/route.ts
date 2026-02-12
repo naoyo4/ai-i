@@ -5,28 +5,22 @@ export async function POST(req: Request) {
     try {
         const { topicId } = await req.json();
 
-        // Fallback if Supabase not configured
         if (!supabase) {
-            console.warn('Supabase not configured. Returning mock session.');
-            return NextResponse.json({ id: 'mock-id-' + Date.now(), mock: true });
+            return NextResponse.json(
+                { error: 'Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.' },
+                { status: 503 }
+            );
         }
 
-        // 1. Create a new interview record in Supabase
         const { data, error } = await supabase
             .from('interviews')
-            .insert([
-                {
-                    topic_id: topicId,
-                    status: 'started',
-                    messages: [] // Init empty
-                }
-            ])
-            .select() // Return the created record (with ID)
+            .insert([{ topic_id: topicId, status: 'started', messages: [] }])
+            .select()
             .single();
 
         if (error) {
             console.error('Supabase Create Error:', error);
-            return NextResponse.json({ id: 'mock-id-' + Date.now(), mock: true });
+            return NextResponse.json({ error: 'Failed to create interview session' }, { status: 500 });
         }
 
         return NextResponse.json(data);

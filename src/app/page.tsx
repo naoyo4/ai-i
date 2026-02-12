@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { INTERVIEW_TOPICS } from '@/lib/types';
-import { ArrowRight, Clock, HelpCircle } from 'lucide-react';
+import { ArrowRight, Clock, HelpCircle, Mic, FileText, Users, MessageSquare, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-// Map icon strings to components if needed, or import dynamically.
-// For simplicity in this step, I'll allow dynamic imports or just simple icon mapping in component.
-import * as Icons from 'lucide-react';
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  'mic': Mic,
+  'file-text': FileText,
+  'users': Users,
+};
 
 export default function Home() {
   return (
@@ -27,14 +30,7 @@ export default function Home() {
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {INTERVIEW_TOPICS.map((topic) => {
-            // dynamic icon rendering
-            // @ts-ignore
-            const IconComponent = Icons[topic.icon.charAt(0).toUpperCase() + topic.icon.slice(1)] || Icons.MessageSquare;
-            // The plan had simple string icons, but Lucide components need to be mapped.
-            // A safer way is used below or I fix types.
-            // Fix: I will just instantiate specific icons in the type definition or map them here properly.
-            // Mapping 'users' -> Users, 'mic' -> Mic, 'file-text' -> FileText
-            // For now, let's use a helper map inside the map or switch.
+            const IconComponent = ICON_MAP[topic.icon] ?? MessageSquare;
 
             return (
               <Link
@@ -43,10 +39,7 @@ export default function Home() {
                 className="group relative bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col"
               >
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-xl transition-transform group-hover:scale-110", topic.color)}>
-                  {/* Using a rough map or specific icons based on ID for simplicity in this generated file */}
-                  {topic.id === 'event-feedback' && <Icons.Mic size={24} />}
-                  {topic.id === 'policy-hearing' && <Icons.FileText size={24} />}
-                  {topic.id === 'user-interview' && <Icons.Users size={24} />}
+                  <IconComponent size={24} />
                 </div>
 
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{topic.title}</h3>
