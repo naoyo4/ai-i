@@ -19,8 +19,19 @@ export async function POST(req: Request) {
             .single();
 
         if (error) {
-            console.error('Supabase Create Error:', error);
-            return NextResponse.json({ error: 'Failed to create interview session' }, { status: 500 });
+            console.error('Supabase Create Error:', JSON.stringify(error));
+            return NextResponse.json(
+                {
+                    error: 'Failed to create interview session',
+                    detail: {
+                        code: error.code,
+                        message: error.message,
+                        hint: error.hint,
+                        details: error.details,
+                    }
+                },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json(data);
