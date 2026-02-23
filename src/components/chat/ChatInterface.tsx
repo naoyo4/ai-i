@@ -45,7 +45,7 @@ export function ChatInterface({ topicId }: { topicId: string }) {
             api: '/api/chat',
             body: { topicId, interviewId },
         }),
-        initialMessages: [{
+        messages: [{
             id: 'init-1',
             role: 'assistant',
             parts: [{ type: 'text', text: 'Hello! Thank you for participating. I am ready to hear your thoughts. Shall we begin?' }],
