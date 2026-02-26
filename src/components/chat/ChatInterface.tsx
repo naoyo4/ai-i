@@ -87,12 +87,8 @@ export function ChatInterface({ topicId }: { topicId: string }) {
         // Fallback: Save to local storage just in case
         localStorage.setItem('interview-messages', JSON.stringify(messages));
 
-        // Pass info to report page
-        if (interviewId) {
-            router.push(`/report/${topicId}?interviewId=${interviewId}`);
-        } else {
-            router.push(`/report/${topicId}`);
-        }
+        // Redirect to top screen
+        router.push('/');
     };
 
     if (sessionError) {
